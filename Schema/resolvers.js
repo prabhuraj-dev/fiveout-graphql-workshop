@@ -1,6 +1,9 @@
 const { UserList } = require('../Data/UserList');
 const { CarList } = require('../Data/CarList');
+const { PubSub } = require('graphql-subscriptions');
 const _ = require('lodash');
+
+const pubsub = new PubSub();
 
 const resolvers = {
   Query: {
@@ -34,13 +37,29 @@ const resolvers = {
       UserList.push(user);
       return user;
     },
+
     //CAR MUTATION RESOLVERS
     addCar: (parent, args) => {
       const car = args.input;
       const lastId = CarList[CarList.length - 1].id;
       car.id = lastId + 1;
       CarList.push(car);
+
+      pubsub.publish('CAR_ADDED', {
+        carAdded: {
+          carmake: car.carmake,
+          carmodel: car.carmodel,
+          carcompany: car.carcompany,
+        },
+      });
       return car;
+    },
+  },
+
+  Subscription: {
+    carAdded: {
+      // More on pubsub below
+      subscribe: () => pubsub.asyncIterator('CAR_ADDED'),
     },
   },
 };

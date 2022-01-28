@@ -1,4 +1,4 @@
-const { gql } = require('apollo-server');
+const { gql } = require('apollo-server-express');
 
 const typeDefs = gql`
   type User {
@@ -13,11 +13,7 @@ const typeDefs = gql`
     id: ID!
     carmake: String!
     carmodel: String!
-    carmodelyear: String!
-    carvin: String!
     carcompany: String!
-    carmileage: Int!
-    orderedby: [User]
   }
 
   type Query {
@@ -32,6 +28,10 @@ const typeDefs = gql`
     addCar(input: AddCarInput!): Car
   }
 
+  type Subscription {
+    carAdded: Car
+  }
+
   input AddUserInput {
     username: String!
     useremail: String!
@@ -42,10 +42,7 @@ const typeDefs = gql`
   input AddCarInput {
     carmake: String!
     carmodel: String!
-    carmodelyear: String!
-    carvin: String!
     carcompany: String!
-    carmileage: Int!
   }
 `;
 
