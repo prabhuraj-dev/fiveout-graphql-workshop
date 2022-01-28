@@ -1,7 +1,9 @@
 const { UserList } = require('../Data/UserList');
 const { CarList } = require('../Data/CarList');
+const { OrderList } = require('../Data/OrderList');
 const { PubSub } = require('graphql-subscriptions');
 const _ = require('lodash');
+const { UserInputError } = require('apollo-server-express');
 
 const pubsub = new PubSub();
 
@@ -38,6 +40,15 @@ const resolvers = {
       return user;
     },
 
+    deleteUser: (parent, args) => {
+      const id = args.id;
+      const removedUserArr = _.remove(
+        UserList,
+        (user) => user.id === Number(id)
+      );
+      return removedUserArr.length > 0 ? true : false;
+    },
+
     //CAR MUTATION RESOLVERS
     addCar: (parent, args) => {
       const car = args.input;
@@ -46,7 +57,7 @@ const resolvers = {
       CarList.push(car);
 
       pubsub.publish('CAR_ADDED', {
-        carAdded: {
+        carChanged: {
           carmake: car.carmake,
           carmodel: car.carmodel,
           carcompany: car.carcompany,
@@ -54,12 +65,61 @@ const resolvers = {
       });
       return car;
     },
+
+    updateCarModel: (parent, args) => {
+      const { id, newcarmodel } = args.input;
+      let carUpdated = {};
+      CarList.forEach((car) => {
+        if (car.id === Number(id)) {
+          car.carmodel = newcarmodel;
+          carUpdated = car;
+        }
+      });
+      pubsub.publish('CAR_MODIFIED', {
+        carChanged: {
+          carmake: carUpdated.carmake,
+          carmodel: carUpdated.carmodel,
+          carcompany: carUpdated.carcompany,
+        },
+      });
+      return carUpdated;
+    },
+
+    bookCar: (parent, args) => {
+      const order = args.input;
+      const { carid, userid } = args.input;
+
+      const user = _.find(UserList, { id: Number(userid) });
+      const car = _.find(CarList, { id: Number(carid) });
+
+      if (!user || !car) {
+        throw new UserInputError('Invalid car or user ID');
+      }
+      const lastId = OrderList[OrderList.length - 1].id;
+      order.id = lastId + 1;
+      OrderList.push(order);
+      return order;
+    },
   },
 
   Subscription: {
-    carAdded: {
+    carChanged: {
       // More on pubsub below
-      subscribe: () => pubsub.asyncIterator('CAR_ADDED'),
+      subscribe: () => pubsub.asyncIterator(['CAR_ADDED', 'CAR_MODIFIED']),
+    },
+  },
+
+  User: {
+    bookedCars: (user) => {
+      let bookedCarList = [];
+      const bookedOrders = _.filter(
+        OrderList,
+        (order) => order.userid === Number(user.id)
+      );
+      bookedCarList = _.map(bookedOrders, (order) => {
+        return _.find(CarList, { id: Number(order.carid) });
+      });
+      return bookedCarList;
     },
   },
 };

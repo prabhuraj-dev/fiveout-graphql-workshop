@@ -6,7 +6,8 @@ const typeDefs = gql`
     username: String!
     useremail: String!
     age: Int!
-    nationality: String!
+    nationality: Nationality!
+    bookedCars: [Car]
   }
 
   type Car {
@@ -14,6 +15,12 @@ const typeDefs = gql`
     carmake: String!
     carmodel: String!
     carcompany: String!
+  }
+
+  type Order {
+    id: ID!
+    carid: Int!
+    userid: Int!
   }
 
   type Query {
@@ -25,11 +32,14 @@ const typeDefs = gql`
 
   type Mutation {
     addUser(input: AddUserInput!): User
+    deleteUser(id: ID!): Boolean
     addCar(input: AddCarInput!): Car
+    bookCar(input: BookCarInput!): Order
+    updateCarModel(input: UpdateCarModelInput!): Car
   }
 
   type Subscription {
-    carAdded: Car
+    carChanged: Car
   }
 
   input AddUserInput {
@@ -43,6 +53,26 @@ const typeDefs = gql`
     carmake: String!
     carmodel: String!
     carcompany: String!
+  }
+
+  input BookCarInput {
+    carid: Int!
+    userid: Int!
+  }
+
+  input UpdateCarModelInput {
+    id: ID!
+    newcarmodel: String!
+  }
+
+  enum Nationality {
+    CANADA
+    BRAZIL
+    INDIA
+    GERMANY
+    CHILE
+    UKRAINE
+    USA
   }
 `;
 
