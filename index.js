@@ -6,6 +6,8 @@ const { SubscriptionServer } = require('subscriptions-transport-ws');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
 const { typeDefs } = require('./Schema/typeDefs');
 const { resolvers } = require('./Schema/resolvers');
+const mongoose = require('mongoose');
+
 
 (async function () {
   const app = express();
@@ -40,6 +42,13 @@ const { resolvers } = require('./Schema/resolvers');
 
   server.applyMiddleware({ app });
 
+  await mongoose.connect("mongodb://localhost:27017/cars_db", {
+    useUnifiedTopology : true,
+    useNewUrlParser : true
+  })
+
+  console.log("Mongoose Connected")
+;
   httpServer.listen(3001, () => {
     console.log(`Server is now running on http://localhost:3001/graphql`);
   });

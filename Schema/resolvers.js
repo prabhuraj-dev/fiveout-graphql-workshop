@@ -1,9 +1,10 @@
 const { UserList } = require('../Data/UserList');
-const { CarList } = require('../Data/CarList');
+// const { CarList } = require('../Data/CarList');
 const { OrderList } = require('../Data/OrderList');
 const { PubSub } = require('graphql-subscriptions');
 const _ = require('lodash');
 const { UserInputError } = require('apollo-server-express');
+const { CarList } = require('../models/CarList.model')
 
 const pubsub = new PubSub();
 
@@ -20,8 +21,9 @@ const resolvers = {
     },
 
     //CAR QUERY RESOLVERS
-    cars: () => {
-      return CarList;
+    cars: async () => {
+      // return CarList;
+      return await CarList.find();
     },
     car: (parent, args) => {
       const carmake = args.carmake;
@@ -50,11 +52,12 @@ const resolvers = {
     },
 
     //CAR MUTATION RESOLVERS
-    addCar: (parent, args) => {
-      const car = args.input;
-      const lastId = CarList[CarList.length - 1].id;
-      car.id = lastId + 1;
-      CarList.push(car);
+    addCar: async (parent, args) => {
+      const { carmake , carmodel, carcompany } = args.input;
+      console.log(carmake , carmodel, carcompany);
+      const id = Math.round(Math.random()*1000);
+      const car = new CarList({id, carmake , carmodel, carcompany})
+      await car.save();
 
       pubsub.publish('CAR_ADDED', {
         carChanged: {
