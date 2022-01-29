@@ -8,21 +8,28 @@ const typeDefs = gql`
     age: Int!
     nationality: String!
   }
+
   type Car {
     id: ID!
     carmake: String!
     carmodel: String!
     carcompany: String!
   }
+
   type Query {
     users: [User!]!
     user(id: ID!): User!
     cars: [Car!]!
     car(carmake: String!): Car
   }
+
   type Mutation {
     addUser(input: AddUserInput!): User
     addCar(input: AddCarInput!): Car
+  }
+
+  type Subscription {
+    carAdded: Car
   }
 
   input AddUserInput {
@@ -31,6 +38,7 @@ const typeDefs = gql`
     age: Int!
     nationality: String!
   }
+
   input AddCarInput {
     carmake: String!
     carmodel: String!
